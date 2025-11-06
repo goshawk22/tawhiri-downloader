@@ -161,7 +161,7 @@ let layout t =
   let%bind.Result j = gd "jDirectionIncrementInDegrees" in
   let%bind.Result k = gi "numberOfValues" in
   match a, b, c, d, e, f, g, h, i, j, k with
-  | 0, 0, 720, 361, 90., 0., -90., 359.5, 0.5, 0.5, 259920 -> Ok Layout.Half_deg
+  | 0, 0, 1440, 721, 90., 0., -90., 359.75, 0.25, 0.25, 1038240 -> Ok Layout.Half_deg
   | a, b, c, d, e, f, g, h, i, j, k ->
     Or_error.errorf
       "couldn't identify layout %i %i %i %i %f %f %f %f %f %f %i"
@@ -201,7 +201,7 @@ let level t =
 (* Take care around threads. *)
 let with_temp_array =
   let mutex = Error_checking_mutex.create () in
-  let arr = Bigarray.(Array1.create Float64 C_layout (720 * 361)) in
+  let arr = Bigarray.(Array1.create Float64 C_layout (1440 * 721)) in
   fun f ->
     Error_checking_mutex.lock mutex;
     protectx ~f arr ~finally:(fun _ -> Error_checking_mutex.unlock mutex)
@@ -211,7 +211,7 @@ let blit =
   let module B = Bigarray in
   let module B2 = Bigarray.Array2 in
   let check_dims dst =
-    if B2.dim1 dst = 361 && B2.dim2 dst = 720
+    if B2.dim1 dst = 721 && B2.dim2 dst = 1440
     then Ok ()
     else Or_error.error_string "Output array has bad dims"
   in
@@ -222,9 +222,11 @@ let blit =
         match F.grib_get_double_array_into t "values" temp with
         | Error _ as error -> error
         | Ok () ->
-          for lat = 0 to 361 - 1 do
-            for lon = 0 to 720 - 1 do
-              let v = Bigarray.Array1.get temp (((360 - lat) * 720) + lon) in
+          for lat = 0 to 721 - 1 do
+            for lon = 0 to 1440 - 1 do
+          (* The temp 1D array is ordered south->north, so flip the latitude
+            index. Nj = 721, so use (Nj-1 - lat) = 720 - lat. *)
+          let v = Bigarray.Array1.get temp (((720 - lat) * 1440) + lon) in
               B2.set dst lat lon v
             done
           done;

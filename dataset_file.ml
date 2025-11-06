@@ -46,7 +46,9 @@ module Filename = struct
   ;;
 end
 
-let shape = 65, 47, 3, 361, 720
+(* The hour axis covers 0..120 inclusive (121 entries). Keep this in sync with
+  [Common.Hour.axis]. *)
+let shape = 121, 47, 3, 721, 1440
 
 let shape_arr =
   let a, b, c, d, e = shape in
