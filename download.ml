@@ -65,7 +65,6 @@ let throttled_get_with_retries
   let throttle = Base_url.throttle base_url in
   let uri = sprintf "%s/%s" (Base_url.to_string base_url) local_path in
   (* Log the exact URL we're about to request so it's visible in logs/docker output. *)
-  Log.Global.info "Requesting %s" uri;
   let next_backoff x =
     let open Time.Span in
     if x < of_sec 100. then scale x 2. else x
